@@ -1,15 +1,19 @@
-import * as React from 'react';
-import { Table, Tag, Space } from 'antd';
+import React, { useState } from 'react';
+import { Table, Space, Popconfirm } from 'antd';
 import styles from './index.less';
 import { connect } from 'umi';
 import { UsersModelState } from './model';
+import UserModal from './components/UserModal';
 
 interface IAppProps {
   users: UsersModelState;
+  dispatch: Function;
 }
 
 const App: React.FunctionComponent<IAppProps> = props => {
-  const { users } = props;
+  const { users, dispatch } = props;
+  const [userModalVisible, setUserModalVisible] = useState(false);
+  const [record, setRecord] = useState({});
   const columns = [
     {
       title: 'ID',
@@ -23,17 +27,41 @@ const App: React.FunctionComponent<IAppProps> = props => {
       render: (text: any) => <a>{text}</a>,
     },
     {
+      title: 'Email',
+      dataIndex: 'email',
+      key: 'email',
+    },
+    {
       title: '创建时间',
       dataIndex: 'create_time',
       key: 'create_time',
     },
     {
-      title: 'Action',
+      title: '操作',
       key: 'action',
       render: (text: any, record: any) => (
         <Space size="middle">
-          <a>Edit</a>
-          <a>Delete</a>
+          <a
+            onClick={() => {
+              setUserModalVisible(true);
+              setRecord(record);
+            }}
+          >
+            编辑
+          </a>
+          <Popconfirm
+            title="Are you sure delete this task?"
+            onConfirm={() => {
+              dispatch({
+                type: 'users/deleteItem',
+                payload: record.id,
+              });
+            }}
+            okText="Yes"
+            cancelText="No"
+          >
+            <a>删除</a>
+          </Popconfirm>
         </Space>
       ),
     },
@@ -46,6 +74,23 @@ const App: React.FunctionComponent<IAppProps> = props => {
         className={`table-box ${styles.tableBox}`}
         columns={columns}
         dataSource={users.items}
+        pagination={{ total: users.total }}
+      />
+      <UserModal
+        visible={userModalVisible}
+        record={record}
+        hideHandler={() => {
+          setUserModalVisible(false);
+        }}
+        editHandler={(values: any, id: any) => {
+          dispatch({
+            type: 'users/editItem',
+            payload: {
+              values,
+              id,
+            },
+          });
+        }}
       />
     </div>
   );
