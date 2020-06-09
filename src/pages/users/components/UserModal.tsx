@@ -20,6 +20,7 @@ export default function UserModal({
 }: Props): ReactElement {
   const onFinish = (values: any, id: number) => {
     editHandler(values, id);
+    hideHandler();
   };
 
   const onFinishFailed = (errorInfo: any) => {

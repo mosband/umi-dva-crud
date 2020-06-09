@@ -1,5 +1,24 @@
 import { Effect, ImmerReducer, Subscription } from 'umi';
-import { request } from 'umi';
+import { extend } from 'umi-request';
+
+const errorHandler = function(error: {
+  response: { status: any };
+  data: any;
+  message: any;
+}) {
+  if (error.response) {
+    console.log(error.response.status);
+    console.log(error.data);
+  } else {
+    console.log(error.message);
+  }
+
+  throw error;
+};
+
+const request = extend({ errorHandler });
+
+import { message } from 'antd';
 
 export interface UsersModelState {
   items: Array<any>;
@@ -57,26 +76,34 @@ const UsersModel: UsersModelType = {
           method: 'put',
           data: values,
         })
-          .then(res => {
-            console.log('编辑成功');
-          })
-          .catch(() => {
-            console.log('编辑失败');
-          });
+          .then(() => true)
+          .catch(() => false);
       });
+      if (data) {
+        message.success('操作成功');
+        yield put({
+          type: 'queryItems',
+        });
+      } else {
+        message.error('操作失败');
+      }
     },
     *deleteItem({ payload: id }, { call, put }) {
       const data = yield call(() => {
         return request(`/api/users/${id}`, {
           method: 'delete',
         })
-          .then(res => {
-            console.log('删除成功');
-          })
-          .catch(() => {
-            console.log('删除失败');
-          });
+          .then(() => true)
+          .catch(() => false);
       });
+      if (data) {
+        message.success('操作成功');
+        yield put({
+          type: 'queryItems',
+        });
+      } else {
+        message.error('操作失败');
+      }
     },
   },
   reducers: {
